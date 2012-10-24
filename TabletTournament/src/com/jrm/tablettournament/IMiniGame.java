@@ -12,5 +12,5 @@ public interface IMiniGame {
 	AILevel [] getAvailableAILevels();
 	ScreenLayout getProjectionLayout(int player_count);
 	ScreenLayout getTranslatorLayout(int player_count);
-	IMiniGameMatch createMatch(int player_count, int [] cpuAILevels);
+	MiniGameMatch createMatch(int player_count, int [] cpuAILevels);
 }
