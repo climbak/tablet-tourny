@@ -1,21 +1,23 @@
 package com.jrm.tablettournament.minigames.tictactoe;
 
+import android.graphics.Canvas;
 import android.graphics.Paint;
 
 import com.jrm.tablettournament.GameCanvas;
-import com.jrm.tablettournament.IMiniGameMatch;
+import com.jrm.tablettournament.MiniGameMatch;
 
-public class TicTacToeMatch implements IMiniGameMatch
+public class TicTacToeMatch extends MiniGameMatch
 {
 
-	public void Start() {
+	
+	public void start() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void Draw(GameCanvas cv) {
+	public void draw(Canvas cv) {
 		// single projection, no need to change
-		cv.drawText("helow world", 10, 10, new Paint());
+		cv.drawText("hello world", 10, 10, new Paint());
 	}
 
 }
