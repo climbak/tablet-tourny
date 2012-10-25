@@ -1,9 +1,6 @@
 package com.jrm.tablettournament.enumuerations;
 
 public enum ScreenRegion {
-	// no projection
-	NONE,
-	
 	// split into two sides, mirrored projections
 	TOP,
 	BOTTOM,

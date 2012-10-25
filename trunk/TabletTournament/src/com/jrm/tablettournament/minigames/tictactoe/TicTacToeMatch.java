@@ -3,7 +3,6 @@ package com.jrm.tablettournament.minigames.tictactoe;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
-import com.jrm.tablettournament.GameCanvas;
 import com.jrm.tablettournament.MiniGameMatch;
 
 public class TicTacToeMatch extends MiniGameMatch
