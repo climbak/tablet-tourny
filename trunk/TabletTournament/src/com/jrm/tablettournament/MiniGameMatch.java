@@ -81,10 +81,37 @@ public abstract class MiniGameMatch extends SurfaceView {
 		drawThread.start();
 	}
 	
+  // set canvas transformation matrix to map points onto the specified region
 	protected void setToProjection(ScreenRegion region, Canvas cv){
 		cv.setMatrix(projections[region.ordinal()]);
 	}
 	
+  // add joystick to region at point {x,y} radius r -- returns handle to joystick
+  // {x,y} will be automatically transformed to be positioned correctly on the screen
+  // based on the region
+  protected int addJoystickToRegion(ScreenRegion region, int x, int y, int r)
+  {
+    // TODO : write this method
+    return -1;
+  }
+  
+  // add button to region at point (same as joystick) -- returns handle to button
+  protected int addButtonToRegion(ScreenRegion region, int x, int y, int width, int height){
+    // TODO : write this method
+    return -1;
+  }
+  
+  // given the button handle, return true if the button is pressed, false if not
+  protected bool getButtonPressed(int btn_handle){
+    // TODO : write this method
+    return false;
+  }
+  
+  // get region that the point lies on.  NOTE
+  // ALTERNATIVE :
+  // consider changing this to getRegionFromPoint_SPLIT and getRegionFromPoint_QUARTERED
+  // to remove the need for setting the translator layout since each game will know what
+  // its layout is
 	protected ScreenRegion getRegionFromPoint(int x, int y)
 	{
 		switch (translatorLayout){
