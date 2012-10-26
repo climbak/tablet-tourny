@@ -1,23 +1,35 @@
 package com.jrm.tablettournament;
 
+import com.jrm.tablettournament.enumuerations.ScreenLayout;
 import com.jrm.tablettournament.enumuerations.ScreenRegion;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-public abstract class MiniGameMatch {
+public abstract class MiniGameMatch extends SurfaceView {
+	
+	public MiniGameMatch(Context context) {
+		super(context);
+	}
+	
 	public abstract void start();
 	public abstract void draw(Canvas cv);
 	
 	private Matrix [] projections = new Matrix[6];
 	
+	protected ScreenLayout translatorLayout = ScreenLayout.FULL;
+	
 	protected int view_left, view_top;
 	protected int view_right, view_bottom;
 	protected int view_width, view_height;
 	protected int view_center_x, view_center_y;
+	
+	DrawThread drawThread;
 	
 	public void setScreenDimensions(int left, int top, int right, int bottom)
 	{
@@ -64,9 +76,76 @@ public abstract class MiniGameMatch {
 		projections[ScreenRegion.TOP_RIGHT.ordinal()] = topRightMatrix;
 	}
 	
+	public void startMatch(){
+		drawThread = new DrawThread(this, this.getHolder());
+		drawThread.start();
+	}
+	
 	protected void setToProjection(ScreenRegion region, Canvas cv){
-		Log.d("set projection", region.ordinal() + "");
 		cv.setMatrix(projections[region.ordinal()]);
+	}
+	
+	protected ScreenRegion getRegionFromPoint(int x, int y)
+	{
+		switch (translatorLayout){
+			case MIRRORED_SPLIT:
+				if (y - view_top < view_center_y)
+				{
+					return ScreenRegion.TOP;
+				} else {
+					return ScreenRegion.BOTTOM;
+				}
+			case MIRRORED_QUARTERED:
+				if (y - view_top < view_center_y)
+				{
+					if (x - view_left < view_center_x){
+						return ScreenRegion.TOP_LEFT;
+					} else {
+						return ScreenRegion.TOP_RIGHT;
+					}
+					
+				} else {
+					if (x - view_left < view_center_x){
+						return ScreenRegion.BOTTOM_LEFT;
+					} else {
+						return ScreenRegion.BOTTOM_RIGHT;
+					}
+				}
+		}
 		
+		return ScreenRegion.TOP;
+	}
+	
+	private class DrawThread extends Thread {
+		private SurfaceHolder surfHolder;
+		private MiniGameMatch match;
+		
+		public DrawThread(MiniGameMatch match, SurfaceHolder surfHolder){
+			this.surfHolder = surfHolder;
+			this.match = match;
+		}
+		
+		@Override
+		public void run(){
+			
+			// wait for canvas to not be null
+			Canvas canvas = surfHolder.lockCanvas();
+			while (canvas == null) canvas = surfHolder.lockCanvas();
+			surfHolder.unlockCanvasAndPost(canvas);
+			
+			for (int j=0;j<30;j++)
+				for (int i=0;i<300;i++){
+					canvas = surfHolder.lockCanvas();
+					match.draw(canvas);
+					surfHolder.unlockCanvasAndPost(canvas);
+					
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+		}
 	}
 }

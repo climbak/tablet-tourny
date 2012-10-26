@@ -1,12 +1,15 @@
 package com.jrm.tablettournament.minigames.mazerace;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.MotionEvent;
 
 import com.jrm.tablettournament.MiniGameMatch;
+import com.jrm.tablettournament.enumuerations.ScreenLayout;
 import com.jrm.tablettournament.enumuerations.ScreenRegion;
 
 public class MazeRaceMatch extends MiniGameMatch
@@ -16,34 +19,60 @@ public class MazeRaceMatch extends MiniGameMatch
 	Paint pBlue = new Paint();
 	Paint pRed = new Paint();
 	
-	public MazeRaceMatch(){
+	public MazeRaceMatch(Context context){
+		super(context);
 		pBlue.setColor(Color.BLUE);
+		pBlue.setTextSize(20);
 		pRed.setColor(Color.RED);
-		pRed.setTextSize(72);
+		pRed.setTextSize(40);
+		
+		translatorLayout = ScreenLayout.MIRRORED_QUARTERED;
 	}
 	
 	public void start() {
-		// TODO Auto-generated method stub
+		
 	}
 	
+	int i = 0;
+	
 	public void draw(Canvas cv) {
+	
+		draw_top_left(cv, ScreenRegion.TOP_RIGHT);
+
+		draw_top_left(cv, ScreenRegion.TOP_LEFT);
+
+		draw_top_left(cv, ScreenRegion.BOTTOM_RIGHT);
+
+		draw_top_left(cv, ScreenRegion.BOTTOM_LEFT);
+		
+		i++;
+		
+		if (i > 300) i = 0;
+	}
+
+	ScreenRegion testRegion = ScreenRegion.TOP;
+	
+	public void draw_top_left(Canvas cv, ScreenRegion region){
+		setToProjection(region, cv);
+		
 		int middle_x = this.view_center_x;
 		int middle_y = this.view_center_y/2;
 		
-		setToProjection(ScreenRegion.TOP, cv);
-		draw_top_left(cv, 0);
-		cv.drawText("Player 1", middle_x-150, middle_y, pRed);
-		
-		setToProjection(ScreenRegion.BOTTOM, cv);
-		draw_top_left(cv, 1);
-		cv.drawText("Player 2", middle_x-150, middle_y, pRed);
-	}
-
-	public void draw_top_left(Canvas cv, int projection){
+		cv.drawRect(0, 0, i, i, (testRegion == region)? pBlue : pRed);
 		cv.drawLine(1, 1, 40, 1, pBlue);
 		cv.drawLine(1, 1, 1, 40, pBlue);
-		cv.drawText("{x=0,y=0}", 2, 12, pBlue);
-		cv.drawText("Projection " + projection, 2, 25, pBlue);
+		cv.drawText("Projection " + region, 2, 20, pBlue);
+		
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		float x = event.getX();
+		float y = event.getY();
+		
+		testRegion = this.getRegionFromPoint((int)x, (int)y);
+		
+	    return super.onTouchEvent(event);
 	}
 	
 }
