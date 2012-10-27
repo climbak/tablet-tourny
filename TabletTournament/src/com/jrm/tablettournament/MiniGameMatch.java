@@ -26,7 +26,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 	public abstract void update(int ds);
 	public abstract void draw(Canvas cv);
 	
-	public void onAfterSetScreenDimensions(){};
+	protected void onAfterSetScreenDimensions(){};
 	
 	private Matrix [] projections = new Matrix[6];
 	
