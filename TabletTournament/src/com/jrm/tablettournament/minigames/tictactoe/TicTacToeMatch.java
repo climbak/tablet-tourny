@@ -20,6 +20,10 @@ public class TicTacToeMatch extends MiniGameMatch
 		
 	}
 
+	public void update(int ds){
+		
+	}
+	
 	public void draw(Canvas cv) {
 		// single projection, no need to change
 		cv.drawText("hello world", 10, 10, new Paint());

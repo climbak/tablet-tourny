@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -19,6 +20,8 @@ public class MazeRaceMatch extends MiniGameMatch
 	Paint pBlue = new Paint();
 	Paint pRed = new Paint();
 	
+	int p1_jstick, p2_jstick;
+	
 	public MazeRaceMatch(Context context){
 		super(context);
 		pBlue.setColor(Color.BLUE);
@@ -27,6 +30,9 @@ public class MazeRaceMatch extends MiniGameMatch
 		pRed.setTextSize(40);
 		
 		translatorLayout = ScreenLayout.MIRRORED_QUARTERED;
+		
+		p1_jstick = this.registerJoystick(ScreenRegion.TOP, 50, 50, 20);
+		p2_jstick = this.registerJoystick(ScreenRegion.BOTTOM, 50, 50, 20);
 	}
 	
 	public void start() {
@@ -34,6 +40,12 @@ public class MazeRaceMatch extends MiniGameMatch
 	}
 	
 	int i = 0;
+	
+	public void update(int ds){
+		PointF vector = new PointF();
+		
+		
+	}
 	
 	public void draw(Canvas cv) {
 	
