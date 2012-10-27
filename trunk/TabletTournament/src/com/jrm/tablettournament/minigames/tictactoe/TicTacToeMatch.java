@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.util.Log;
@@ -18,6 +19,7 @@ public class TicTacToeMatch extends MiniGameMatch {
 	char[] board = new char[9];
 	float boardSide;
 	int markOffset;
+	Paint def = new Paint();
 
 	public TicTacToeMatch(Context context) {
 		super(context);
@@ -27,6 +29,7 @@ public class TicTacToeMatch extends MiniGameMatch {
 
 		pBlue.setColor(Color.BLUE);
 		pBlue.setStrokeWidth(5);
+		pBlue.setStyle(Style.STROKE);
 	}
 
 	@Override
@@ -129,9 +132,9 @@ public class TicTacToeMatch extends MiniGameMatch {
 	public void draw(Canvas cv) {
 		// single projection, no need to change
 
+		cv.drawPaint(def);
 		try {
 			cv.drawLines(lines, pBlue);
-			
 			/* draw the necessary 'X's and 'O's */
 			for (int i = 0; i < 9; i++) {
 				switch (i) {
