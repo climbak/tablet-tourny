@@ -1,5 +1,6 @@
 package com.jrm.tablettournament;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import com.jrm.tablettournament.enumuerations.ScreenLayout;
@@ -25,6 +26,8 @@ public abstract class MiniGameMatch extends SurfaceView {
 	public abstract void update(int ds);
 	public abstract void draw(Canvas cv);
 	
+	public void onAfterSetScreenDimensions(){};
+	
 	private Matrix [] projections = new Matrix[6];
 	
 	protected ScreenLayout translatorLayout = ScreenLayout.FULL;
@@ -36,7 +39,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 	
 	DrawThread drawThread;
 	
-	Joystick [] joysticks = new Joystick[8];
+	ArrayList<InputJoystick> joystick = new ArrayList<InputJoystick>();
 	
 	public void setScreenDimensions(int left, int top, int right, int bottom)
 	{
@@ -55,7 +58,6 @@ public abstract class MiniGameMatch extends SurfaceView {
 		view_height = height;
 		view_center_x = cx;
 		view_center_y = cy;
-		
 		
 		// setup all projections
 		Matrix topMatrix = new Matrix();
@@ -84,6 +86,8 @@ public abstract class MiniGameMatch extends SurfaceView {
 		
 		projections[ScreenRegion.TOP.ordinal()] = topRightMatrix;
 		projections[ScreenRegion.TOP_RIGHT.ordinal()] = topRightMatrix;
+		
+		this.onAfterSetScreenDimensions();
 	}
 	
 	public void startMatch(){
@@ -100,14 +104,13 @@ public abstract class MiniGameMatch extends SurfaceView {
 		point.y = r2s_pt_holder[1];
 	}
 	
-	
-	
 	protected void setToProjection(ScreenRegion region, Canvas cv){
 		cv.setMatrix(projections[region.ordinal()]);
 	}
 	
 	protected int registerJoystick(ScreenRegion region, int x, int y, int r)
 	{
+		
 		return -1;
 	}
 	
@@ -149,7 +152,9 @@ public abstract class MiniGameMatch extends SurfaceView {
 		return ScreenRegion.TOP;
 	}
 	
-	private class Joystick
+	
+	
+	private class InputJoystick
 	{
 		public int cx, cy;
 		public int r;
