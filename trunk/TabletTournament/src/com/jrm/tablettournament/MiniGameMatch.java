@@ -1,11 +1,15 @@
 package com.jrm.tablettournament;
 
+import java.util.Vector;
+
 import com.jrm.tablettournament.enumuerations.ScreenLayout;
 import com.jrm.tablettournament.enumuerations.ScreenRegion;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -18,6 +22,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 	}
 	
 	public abstract void start();
+	public abstract void update(int ds);
 	public abstract void draw(Canvas cv);
 	
 	private Matrix [] projections = new Matrix[6];
@@ -30,6 +35,8 @@ public abstract class MiniGameMatch extends SurfaceView {
 	protected int view_center_x, view_center_y;
 	
 	DrawThread drawThread;
+	
+	Joystick [] joysticks = new Joystick[8];
 	
 	public void setScreenDimensions(int left, int top, int right, int bottom)
 	{
@@ -84,8 +91,29 @@ public abstract class MiniGameMatch extends SurfaceView {
 		drawThread.start();
 	}
 	
+	private float [] r2s_pt_holder = new float[2];
+	protected void mapPoint_RegionToScreen(ScreenRegion region, PointF point){
+		r2s_pt_holder[0] = point.x;
+		r2s_pt_holder[1] = point.y;
+		projections[region.ordinal()].mapPoints(r2s_pt_holder);
+		point.x = r2s_pt_holder[0];
+		point.y = r2s_pt_holder[1];
+	}
+	
+	
+	
 	protected void setToProjection(ScreenRegion region, Canvas cv){
 		cv.setMatrix(projections[region.ordinal()]);
+	}
+	
+	protected int registerJoystick(ScreenRegion region, int x, int y, int r)
+	{
+		return -1;
+	}
+	
+	protected int registerButton(ScreenRegion region, int x, int y, int w, int h)
+	{
+		return -1;
 	}
 	
 	protected ScreenRegion getRegionFromPoint(int x, int y)
@@ -121,6 +149,21 @@ public abstract class MiniGameMatch extends SurfaceView {
 		return ScreenRegion.TOP;
 	}
 	
+	private class Joystick
+	{
+		public int cx, cy;
+		public int r;
+		
+		public boolean containsPoint(int x, int y){
+			return Math.pow(x-cx,2) + Math.pow(y-cy,2) < Math.pow(r, 2);
+		}
+		
+		public void updateStateVectorFromPoint(float x, float y, PointF vector){
+			vector.x = x - cx;
+			vector.y = y - cy;
+		}
+	}
+	
 	private class DrawThread extends Thread {
 		private SurfaceHolder surfHolder;
 		private MiniGameMatch match;
@@ -141,6 +184,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 			for (int j=0;j<30;j++)
 				for (int i=0;i<300;i++){
 					canvas = surfHolder.lockCanvas();
+					match.update(0);
 					match.draw(canvas);
 					surfHolder.unlockCanvasAndPost(canvas);
 					
