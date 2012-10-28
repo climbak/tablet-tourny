@@ -1,8 +1,24 @@
 package com.jrm.tablettournament.inputs;
 
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
+
 
 public class InputJoystick extends Input
 {
+	Paint pGreen = new Paint();
+	Paint pRed = new Paint();
+	
+	public InputJoystick(){
+		pGreen.setColor(Color.GREEN);
+		pGreen.setStyle(Style.STROKE);
+		
+		pRed.setColor(Color.RED);
+		pRed.setStyle(Style.STROKE);
+	}
+	
 	public int cx, cy;
 	public int r;
 	
@@ -29,6 +45,16 @@ public class InputJoystick extends Input
 	@Override
 	public void handleUpEvent(){
 		this.active = false;
+	}
+
+	@Override
+	public void draw(Canvas cv) {
+		cv.drawCircle(cx, cy, r, active? pRed : pGreen);
+		
+		if (active){
+			cv.drawLine(cx, cy, cx + current_x, cy + current_y, pRed);
+			cv.drawCircle(cx + current_x, cy + current_y, 20, pRed);
+		}
 	}
 }
 
