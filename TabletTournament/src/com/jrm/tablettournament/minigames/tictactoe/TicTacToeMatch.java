@@ -477,8 +477,8 @@ public class TicTacToeMatch extends MiniGameMatch {
 
 	private int nextAIMove() {
 //		return easyAINextMove():
-//		return intermediateAINextMove();
-		return expertAINextMove();
+		return intermediateAINextMove();
+//		return expertAINextMove();
 	}
 
 	private int easyAINextMove() {
@@ -528,7 +528,7 @@ public class TicTacToeMatch extends MiniGameMatch {
 				oCount++;
 		}
 		boolean maxPlayer = !(oCount < xCount);
-		int[] move = minimax(new TicTacToeGameState(state, null, maxPlayer));
+		int[] move = minimax(new TicTacToeGameState(state, null, maxPlayer), Integer.MIN_VALUE, Integer.MAX_VALUE);
 		return 3*move[0] + move[1];
 	}
 	
@@ -540,26 +540,23 @@ public class TicTacToeMatch extends MiniGameMatch {
 	 *            The state from which the search will begin.
 	 * @return The best next move for this state.
 	 */
-	private int[] minimax(TicTacToeGameState gameState) {
+	private int[] minimax(TicTacToeGameState gameState, int alpha, int beta) {
 
-		String[] temp = getInvariants(gameState);
+//		String[] temp = getInvariants(gameState);
 
-		for (String tmp : temp) {
-			visited.add(tmp);
-		}
+//		for (String tmp : temp) {
+			visited.add(gameState.toString());
+//		}
 
 		if (gameState.isGameOver()) {
 			int[] move = getMove(gameState);
-			return new int[] { move[0], move[1], (Integer) gameState.winner() };
+			return new int[] { move[0], move[1], gameState.winner() };
 		}
 
-		int bestScore;
-		int currentScore;
+		int score;
 		int row = -1, col = -1;
 
 		if (gameState.isMaxPlayer()) {
-
-			bestScore = Integer.MIN_VALUE;
 
 			ArrayList<TicTacToeGameState> children = gameState
 					.generateChildren('X', !gameState.isMaxPlayer());
@@ -567,22 +564,21 @@ public class TicTacToeMatch extends MiniGameMatch {
 			int[] result;
 			for (TicTacToeGameState child : children) {
 				if (!visited.contains(child.getState())) {
-					result = minimax(child);
-					currentScore = result[2];
-					if (currentScore > bestScore) {
-						bestScore = currentScore;
+					result = minimax(child, alpha, beta);
+					score = result[2];
+					if (score > alpha) {
+						alpha = score;
 						int[] move = getMove(child);
 						row = move[0];
 						col = move[1];
 					}
+					if (alpha >= beta) break; // beta cutoff
 				}
 			}
-			return new int[] { row, col, bestScore };
+			return new int[] { row, col, alpha };
 		}
 
 		else {
-
-			bestScore = Integer.MAX_VALUE;
 
 			ArrayList<TicTacToeGameState> children = gameState
 					.generateChildren('O', !gameState.isMaxPlayer());
@@ -590,17 +586,18 @@ public class TicTacToeMatch extends MiniGameMatch {
 			int[] result;
 			for (TicTacToeGameState child : children) {
 				if (!visited.contains(child.getState())) {
-					result = minimax(child);
-					currentScore = result[2];
-					if (currentScore < bestScore) {
-						bestScore = currentScore;
+					result = minimax(child, alpha, beta);
+					score = result[2];
+					if (score < beta) {
+						beta = score;
 						int[] move = getMove(child);
 						row = move[0];
 						col = move[1];
 					}
+					if (alpha >= beta) break;
 				}
 			}
-			return new int[] { row, col, bestScore };
+			return new int[] { row, col, beta };
 		}
 	}
 	
