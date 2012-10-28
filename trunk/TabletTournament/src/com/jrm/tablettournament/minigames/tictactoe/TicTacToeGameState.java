@@ -135,7 +135,7 @@ public class TicTacToeGameState extends GameState {
 	 * draw and +1 for 'X'. If game is not over when this method is called,
 	 * returns -9.
 	 */
-	public Object winner() {
+	public int winner() {
 
 		String state = (String) getState();
 

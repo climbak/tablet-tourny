@@ -33,7 +33,7 @@ public abstract class GameState {
 	 * 
 	 * @return The winner of this game.
 	 */
-	public abstract Object winner();
+	public abstract int winner();
 
 	/**
 	 * Gets the this GameState's held representative Object.
