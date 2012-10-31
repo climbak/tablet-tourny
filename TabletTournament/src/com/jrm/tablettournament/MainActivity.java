@@ -1,19 +1,22 @@
 package com.jrm.tablettournament;
 
-import android.app.Activity;
-import android.os.Bundle;
+import com.jrm.tablettournament.minigames.mazerace.MazeRaceMatch;
 
-import com.jrm.tablettournament.minigames.tictactoe.TicTacToeMatch;
+import android.os.Bundle;
+import android.view.Window;
+import android.app.Activity;
 
 public class MainActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // setContentView(R.layout.activity_main);
-        TicTacToeMatch match = new TicTacToeMatch(this);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        MiniGameMatch match = new MazeRaceMatch(this);
+
         setContentView(match);
-        match.setScreenDimensions(0, 100, 800, 1180);
+        match.setScreenDimensions(0, 20, 800, 1160);
         match.startMatch();
     }
 }
