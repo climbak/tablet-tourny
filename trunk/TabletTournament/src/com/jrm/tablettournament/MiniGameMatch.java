@@ -19,6 +19,8 @@ import com.jrm.tablettournament.enumuerations.ScreenRegion;
 import com.jrm.tablettournament.inputs.Input;
 import com.jrm.tablettournament.inputs.InputButton;
 import com.jrm.tablettournament.inputs.InputJoystick;
+import com.jrm.tablettournament.inputs.InputTouch;
+import com.jrm.tablettournament.inputs.InputTouchDefinition;
 
 public abstract class MiniGameMatch extends SurfaceView {
 	
@@ -32,9 +34,8 @@ public abstract class MiniGameMatch extends SurfaceView {
 	
 	protected void onAfterSetScreenDimensions(){};
 	
-	private Matrix [] projections = new Matrix[6];
-	private Matrix [] translators = new Matrix[6];
 	
+	protected final RegionTransformer transformer = new RegionTransformer();
 	protected ScreenLayout translatorLayout = ScreenLayout.FULL;
 	
 	protected int view_left, view_top;
@@ -46,6 +47,8 @@ public abstract class MiniGameMatch extends SurfaceView {
 	
 	ArrayList<Input> inputs = new ArrayList<Input>();
 	ArrayList<Input> inputTracking = new ArrayList<Input>(10);
+	
+
 	
 	public void setScreenDimensions(int left, int top, int right, int bottom)
 	{
@@ -62,89 +65,16 @@ public abstract class MiniGameMatch extends SurfaceView {
 		view_center_x = width/2;
 		view_center_y = height/2;
 		
-		setupProjections();
-		setupTranslators();
+		transformer.setScreenDimensions(left, top, right, bottom);
 		
 		this.onAfterSetScreenDimensions();
 	}
 	
-	private void setupProjections(){
-		// setup all projections
-		Matrix topMatrix = new Matrix();
-		topMatrix.setScale(-1, -1);
-		topMatrix.postTranslate(view_left + view_center_x, view_top + view_center_y);
-		
-		projections[ScreenRegion.TOP_LEFT.ordinal()] = topMatrix;
-		
-
-		Matrix bottomMatrix = new Matrix();
-		bottomMatrix.postTranslate(view_center_x + view_left, view_center_y + view_top);
-		
-		projections[ScreenRegion.BOTTOM_RIGHT.ordinal()] = bottomMatrix;
-		
-		
-		Matrix bottomLeftMatrix = new Matrix();
-		bottomLeftMatrix.setTranslate(0 + view_left, view_center_y + view_top);
-		
-		projections[ScreenRegion.BOTTOM.ordinal()] = bottomLeftMatrix;
-		projections[ScreenRegion.BOTTOM_LEFT.ordinal()] = bottomLeftMatrix;
-		
-		
-		Matrix topRightMatrix = new Matrix();
-		topRightMatrix.setScale(-1, -1);
-		topRightMatrix.postTranslate(view_left + view_width, view_top + view_center_y);
-		
-		projections[ScreenRegion.TOP.ordinal()] = topRightMatrix;
-		projections[ScreenRegion.TOP_RIGHT.ordinal()] = topRightMatrix;
-	}
-
 	
-	private void setupTranslators(){
-		// setup all translators
-		Matrix topMatrix = new Matrix();
-		projections[ScreenRegion.TOP_LEFT.ordinal()].invert(topMatrix);
-		translators[ScreenRegion.TOP_LEFT.ordinal()] = topMatrix;
-		
-		Matrix bottomMatrix = new Matrix();
-		projections[ScreenRegion.BOTTOM_RIGHT.ordinal()].invert(bottomMatrix);
-		translators[ScreenRegion.BOTTOM_RIGHT.ordinal()] = bottomMatrix;
-		
-		Matrix bottomLeftMatrix = new Matrix();
-		projections[ScreenRegion.BOTTOM.ordinal()].invert(bottomLeftMatrix);
-		translators[ScreenRegion.BOTTOM.ordinal()] = bottomLeftMatrix;
-		translators[ScreenRegion.BOTTOM_LEFT.ordinal()] = bottomLeftMatrix;
-		
-		Matrix topRightMatrix = new Matrix();
-		projections[ScreenRegion.TOP.ordinal()].invert(topRightMatrix);
-		translators[ScreenRegion.TOP.ordinal()] = topRightMatrix;
-		translators[ScreenRegion.TOP_RIGHT.ordinal()] = topRightMatrix;
-	}
 	
 	public void startMatch(){
 		drawThread = new DrawThread(this, this.getHolder());
 		drawThread.start();
-	}
-	
-	private float [] r2s_pt_holder = new float[2];
-	protected void mapPoint_RegionToScreen(ScreenRegion region, PointF point){
-		r2s_pt_holder[0] = point.x;
-		r2s_pt_holder[1] = point.y;
-		projections[region.ordinal()].mapPoints(r2s_pt_holder);
-		point.x = r2s_pt_holder[0];
-		point.y = r2s_pt_holder[1];
-	}
-	
-	private float [] s2r_pt_holder = new float[2];
-	protected void mapPoint_ScreenToRegion(ScreenRegion region, PointF point){
-		s2r_pt_holder[0] = point.x;
-		s2r_pt_holder[1] = point.y;
-		translators[region.ordinal()].mapPoints(s2r_pt_holder);
-		point.x = s2r_pt_holder[0];
-		point.y = s2r_pt_holder[1];
-	}
-	
-	protected void setToProjection(ScreenRegion region, Canvas cv){
-		cv.setMatrix(projections[region.ordinal()]);
 	}
 	
 	protected int registerButton(ScreenRegion region, int x, int y, int width, int height){
@@ -157,6 +87,16 @@ public abstract class MiniGameMatch extends SurfaceView {
 	
 	protected boolean getButtonDown(int handle){
 		return ((InputButton)inputs.get(handle)).active;
+	}
+	
+	protected InputTouch.State registerInputTouch(ScreenRegion region, InputTouchDefinition definition){
+		InputTouch touch = new InputTouch(definition);
+		touch.region = region;
+		touch.handle = inputs.size();
+		
+		inputs.add(touch);
+		
+		return touch.state;
 	}
 	
 	// adds a joystick and returns a "handle" to that joystick
@@ -238,7 +178,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 		ScreenRegion region = this.getRegionFromPoint((int)screen_x, (int)screen_y);
 		
 		PointF p = new PointF(screen_x, screen_y);
-		this.mapPoint_ScreenToRegion(region, p);
+		this.transformer.mapPoint_ScreenToRegion(region, p);
 
 		Input input = findInputAtPoint(region, p.x, p.y);
 		
@@ -279,7 +219,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 			ScreenRegion region = this.getRegionFromPoint((int)screen_x, (int)screen_y);
 			
 			PointF ptRegion = new PointF(screen_x, screen_y);
-			this.mapPoint_ScreenToRegion(region, ptRegion);
+			this.transformer.mapPoint_ScreenToRegion(region, ptRegion);
 
 			input.handleMoveEvent(ptRegion.x, ptRegion.y);
 		}
@@ -338,6 +278,8 @@ public abstract class MiniGameMatch extends SurfaceView {
 			Canvas canvas = surfHolder.lockCanvas();
 			while (canvas == null) canvas = surfHolder.lockCanvas();
 			surfHolder.unlockCanvasAndPost(canvas);
+			long last_ds = System.currentTimeMillis();
+			long current_ds;
 			
 			while (true){
 				canvas = surfHolder.lockCanvas();
@@ -346,13 +288,16 @@ public abstract class MiniGameMatch extends SurfaceView {
 				
 				canvas.save();
 				
-				match.update(0);
+				current_ds = System.currentTimeMillis();
+				match.update((int)(current_ds - last_ds));
+				last_ds = current_ds;
+				
 				match.draw(canvas);
 				
 				canvas.restore();
 				
 				for (Input input : inputs){
-					match.setToProjection(input.region, canvas);
+					match.transformer.setToProjection(input.region, canvas);
 					input.draw(canvas);
 				}
 				
