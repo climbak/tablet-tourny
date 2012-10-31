@@ -14,9 +14,13 @@ public class InputJoystick extends Input
 	public InputJoystick(){
 		pGreen.setColor(Color.GREEN);
 		pGreen.setStyle(Style.STROKE);
+		pGreen.setStrokeWidth(2);
+		pGreen.setAntiAlias(true);
 		
 		pRed.setColor(Color.RED);
 		pRed.setStyle(Style.STROKE);
+		pRed.setStrokeWidth(2);
+		pRed.setAntiAlias(true);
 	}
 	
 	public int cx, cy;

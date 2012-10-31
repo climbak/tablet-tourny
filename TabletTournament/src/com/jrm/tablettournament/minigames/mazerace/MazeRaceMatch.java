@@ -8,7 +8,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
+import android.graphics.Path;
+import android.graphics.Path.Direction;
 import android.graphics.PointF;
+import android.graphics.Region.Op;
 
 import com.jrm.tablettournament.MiniGameMatch;
 import com.jrm.tablettournament.enumuerations.ScreenLayout;
@@ -30,15 +34,27 @@ public class MazeRaceMatch extends MiniGameMatch
 	int h_p1Delay;
 	int h_p2Delay;
 	
+	int p1HP = 5;
+	int p2HP = 5;
+	
 	LinkedList<Bullet> bullets = new LinkedList<Bullet>();
 	ActionDelay delay = new ActionDelay();
 	
 	public MazeRaceMatch(Context context){
 		super(context);
+		
 		pBlue.setColor(Color.BLUE);
+		pBlue.setStyle(Style.STROKE);
+		pBlue.setStrokeWidth(2);
 		pBlue.setTextSize(20);
+		pBlue.setAntiAlias(true);
+		
 		pRed.setColor(Color.RED);
-		pRed.setTextSize(40);
+		pRed.setTextSize(20);
+		pRed.setStyle(Style.STROKE);
+		pRed.setStrokeWidth(2);
+		pRed.setAntiAlias(true);
+		
 		pBackground.setColor(Color.BLACK);
 		translatorLayout = ScreenLayout.MIRRORED_SPLIT;
 		
@@ -48,10 +64,10 @@ public class MazeRaceMatch extends MiniGameMatch
 		p1_js_aim = this.registerJoystick(ScreenRegion.TOP, 700, 450, 80);
 		p2_js_aim = this.registerJoystick(ScreenRegion.BOTTOM, 700, 450, 80);
 		
-		this.registerButton(ScreenRegion.TOP, 40, 40, 100, 100);
+		// this.registerButton(ScreenRegion.TOP, 40, 40, 100, 100);
 		
-		h_p1Delay = delay.addDelay(1000);
-		h_p2Delay = delay.addDelay(1000);
+		h_p1Delay = delay.addDelay(200);
+		h_p2Delay = delay.addDelay(200);
 	}
 	
 	
@@ -137,13 +153,15 @@ public class MazeRaceMatch extends MiniGameMatch
 			
 			
 			// detect collisions
-			if (MathUtil.pointsClose(bullet.x, bullet.y, p1.x, p1.y, 5))
+			if (!bullet.player1 && MathUtil.pointsClose(bullet.x, bullet.y, p1.x, p1.y, 20))
 			{
 				delete.add(bullet);
+				p1HP--;
 			} 
-			else if (MathUtil.pointsClose(bullet.x, bullet.y, p2.x, p2.y, 5))
+			else if (bullet.player1 && MathUtil.pointsClose(bullet.x, bullet.y, p2.x, p2.y, 20))
 			{
 				delete.add(bullet);
+				p2HP--;
 			} 
 			else if (bullet.x < 0 || bullet.y < 0) delete.add(bullet);
 			else if (bullet.y > this.view_height || bullet.x > this.view_width) delete.add(bullet); 
@@ -168,32 +186,47 @@ public class MazeRaceMatch extends MiniGameMatch
 		
 		
 		// draw_top_left(cv, ScreenRegion.TOP);
-		cv.drawCircle(p1.x, p1.y, 20, pBlue);
-		cv.drawLine(p1.x, p1.y, p1.x + p1_aim.x, p1.y + p1_aim.y, pBlue);
 		
 		//draw_top_left(cv, ScreenRegion.BOTTOM);
-		cv.drawCircle(p2.x,  p2.y, 20, pRed);
-		cv.drawLine(p2.x, p2.y, p2.x + p2_aim.x, p2.y + p2_aim.y, pRed);
+		drawCraft(cv, p1, p1_aim, pBlue);
+		drawCraft(cv, p2, p2_aim, pRed);
+		
+		
 
 		for (Bullet bullet : bullets){
 			cv.drawCircle(bullet.x, bullet.y, 5, bullet.player1 ? pBlue : pRed);
 		}
+		
+		this.transformer.setToProjection(ScreenRegion.BOTTOM, cv);
+		cv.drawText(p2HP + "hp", 10, 10, pRed);
+		 
+		this.transformer.setToProjection(ScreenRegion.TOP, cv);
+		cv.drawText(p1HP + "hp", 10, 10, pBlue);
 	}
-
-	ScreenRegion testRegion = ScreenRegion.TOP;
 	
-	public void draw_top_left(Canvas cv, ScreenRegion region){
-		setToProjection(region, cv);
+	private void drawCraft(Canvas cv, PointF p, PointF p_aim, Paint paint){
+		cv.save();
 		
-		int middle_x = this.view_center_x;
-		int middle_y = this.view_center_y/2;
+		paint.setStrokeWidth(4);
+		cv.drawCircle(p.x, p.y, 5, paint);
+		paint.setStrokeWidth(3);
+		cv.drawCircle(p.x, p.y, 10, paint);
+		paint.setStrokeWidth(2);
+		cv.drawCircle(p.x, p.y, 14, paint);
 		
-		// cv.drawRect(0, 0, i, i, (testRegion == region)? pBlue : pRed);
-		cv.drawLine(1, 1, 40, 1, pBlue);
-		cv.drawLine(1, 1, 1, 40, pBlue);
-		cv.drawText("Projection " + region, 2, 20, pBlue);
+		Path path = new Path();
+		path.addCircle(p.x, p.y, 15, Direction.CCW);
 		
+		
+		cv.clipPath(path, Op.DIFFERENCE);
+		
+		paint.setStrokeWidth(5);
+		cv.drawLine(p.x, p.y, p.x + p_aim.x, p.y + p_aim.y, paint);
+		
+		paint.setStrokeWidth(2);
+		cv.restore();
 	}
+	
 
 	private class Bullet {
 		public float x, y;
