@@ -54,6 +54,7 @@ public class InputJoystick extends Input
 	@Override
 	public void draw(Canvas cv) {
 		cv.drawCircle(cx, cy, r, active? pRed : pGreen);
+		cv.drawCircle(cx, cy, r-3, active? pRed : pGreen);
 		
 		if (active){
 			cv.drawLine(cx, cy, cx + current_x, cy + current_y, pRed);
