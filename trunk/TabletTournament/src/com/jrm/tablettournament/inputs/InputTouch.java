@@ -43,7 +43,7 @@ public class InputTouch extends Input {
 	public void handleMoveEvent(float region_x, float region_y) {
 		state.setXY(region_x, region_y);
 	}
-
+	
 	@Override
 	public void handleUpEvent() {
 		state.active = false;
