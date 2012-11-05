@@ -304,7 +304,7 @@ public abstract class MiniGameMatch extends SurfaceView {
 				surfHolder.unlockCanvasAndPost(canvas);
 				
 				try {
-					Thread.sleep(33);
+					Thread.sleep(20);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
