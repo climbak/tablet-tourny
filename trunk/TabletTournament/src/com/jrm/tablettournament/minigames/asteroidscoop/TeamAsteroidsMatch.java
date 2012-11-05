@@ -2,6 +2,7 @@ package com.jrm.tablettournament.minigames.asteroidscoop;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Random;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -14,6 +15,7 @@ import android.graphics.Path.Direction;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Region.Op;
+import android.util.FloatMath;
 
 import com.jrm.tablettournament.MiniGameMatch;
 import com.jrm.tablettournament.enumuerations.ScreenLayout;
@@ -78,22 +80,21 @@ public class TeamAsteroidsMatch extends MiniGameMatch
 		h_p1Delay = delay.addDelay(200);
 		h_p2Delay = delay.addDelay(200);
 		
-		baddies.add(new Baddy(50, 50, 30));
-		
-		/*
-		for (int i=0;i<20;i++)
-		{
-			
-		}*/
 	}
 	
 	
 	@Override
 	protected void onAfterSetScreenDimensions(){
+		Random rand = new Random();
+		
 		p1 = new PointF(this.view_center_x, this.view_center_y);
 		p2 = new PointF(this.view_center_x, this.view_center_y);
 		p1_aim = new PointF();
 		p2_aim = new PointF();
+		
+		for (int i=0;i<10;i++)
+			baddies.add(new Baddy(rand.nextInt(this.view_width), rand.nextInt(this.view_height), 40 + rand.nextInt(20)));
+		
 	}
 	
 	public void start() {
@@ -164,33 +165,74 @@ public class TeamAsteroidsMatch extends MiniGameMatch
 		
 		ArrayList<Bullet> delete = new ArrayList<Bullet>();
 		
-		for (Bullet bullet : bullets){
-			bullet.x += bullet.vx;
-			bullet.y += bullet.vy;
+		for (Baddy bad : baddies){
+			bounce(bad.point, bad.vector);
 			
-			
-			// detect collisions
-			if (!bullet.player1 && MathUtil.pointsClose(bullet.x, bullet.y, p1.x, p1.y, 20))
-			{
-				delete.add(bullet);
-				p1HP--;
-			} 
-			else if (bullet.player1 && MathUtil.pointsClose(bullet.x, bullet.y, p2.x, p2.y, 20))
-			{
-				delete.add(bullet);
-				p2HP--;
-			} 
-			else if (bullet.x < 0 || bullet.y < 0) delete.add(bullet);
-			else if (bullet.y > this.view_height || bullet.x > this.view_width) delete.add(bullet); 
-
-			
+			bad.update();
 		}
 		
-		for (Bullet b : delete){
-			bullets.remove(b);
+		// detect collisions
+		for (int i=bullets.size()-1;i>=0;i--){
+			Bullet b = bullets.get(i);
+			
+			b.x += b.vx;
+			b.y += b.vy;
+		
+			if (outOfBounds(b.x, b.y)){
+				bullets.remove(i);
+				continue;
+			}
+			
+			for (int j=baddies.size()-1;j>=0;j--){
+				if (baddies.get(j).bounds.contains(b.x, b.y)){
+					bullets.remove(b);
+					
+					Baddy next = baddies.get(j).split();
+					
+					if (next == null){
+						baddies.remove(j);
+					} else {
+						baddies.add(next);
+					}
+				}
+			}
 		}
+		
+		for (Baddy baddy : baddies){
+			if (baddy.bounds.contains(p1.x, p1.y)){
+				p1HP --;
+			}
+			
+			if (baddy.bounds.contains(p2.x, p2.y)){
+				p2HP --;
+			}
+		}
+		
 	}
 
+	public void bounce(PointF p, PointF vector){
+		if (p.x < 0) vector.x = -vector.x;
+		if (p.y < 0) vector.y = -vector.y;
+		if (p.x > this.view_width) vector.x = -vector.x;
+		if (p.y > this.view_height) vector.y = -vector.y;;	
+	}
+	
+	public boolean outOfBounds(PointF p){
+		if (p.x < 0) return true;
+		if (p.y < 0) return true;
+		if (p.x > this.view_width) return true;
+		if (p.y > this.view_height) return true;
+		return false;
+	}
+	
+	public boolean outOfBounds(float x, float y){
+		if (x < 0) return true;
+		if (y < 0) return true;
+		if (x > this.view_width) return true;
+		if (y > this.view_height) return true;
+		return false;
+	}
+	
 	public void restrain_point(PointF p){
 		if (p.x < 0) p.x = 0;
 		if (p.y < 0) p.y = 0;
@@ -219,18 +261,33 @@ public class TeamAsteroidsMatch extends MiniGameMatch
 		cv.restore();
 		
 		for (Baddy baddy : baddies){
-			drawBaddy(cv, baddy);
+			// drawBaddy(cv, baddy);
+			baddy.draw(cv);
 		}
 	}
 
     void drawBaddy(Canvas cv, Baddy b){
+    	/*
     	int start = 8;
     	RectF rect = new RectF(-start, -start, start, start);
     	
     	rect.offset(b.point.x, b.point.y);
     	b.draw_angle = (b.draw_angle + 5) % 360;
         
-    	cv.drawArc(rect, b.draw_angle, 270, false, pRed);
+    	float sweep = 300;
+    	
+    	cv.drawArc(rect, b.draw_angle, sweep, false, pRed);
+    	
+    	rect.inset(-5, -5);
+    	cv.drawArc(rect, 360 - b.draw_angle, sweep, false, pRed);
+    	
+    	rect.inset(-5, -5);
+    	cv.drawArc(rect, b.draw_angle, sweep, false, pRed);
+    	
+    	rect.inset(-5, -5);
+    	cv.drawArc(rect, 360 - b.draw_angle, sweep, false, pRed);
+    	*/
+    	b.draw(cv);
     }
 	
 	
@@ -276,12 +333,79 @@ public class TeamAsteroidsMatch extends MiniGameMatch
 	}
 	
 	private class Baddy {
+		Random rand = new Random();
+		Paint paint = new Paint();
+		Path poly_base = new Path();
+		Path poly_current = new Path();
+		Matrix trans = new Matrix();
+		public RectF bounds = new RectF();
+		
 		public Baddy(int x, int y, int r){
+			paint.setColor(Color.RED);
+			paint.setStyle(Style.STROKE);
+			
 			point = new PointF(x,y);
 			size = r;
+			
+			vector = new PointF(rand.nextInt(7) + 3, rand.nextInt(7) + 3);
+			
+			resetPath();
+			
+		}
+		
+		public void update(){
+			trans.reset();
+			
+			point.x += vector.x;
+			point.y += vector.y;
+			
+			draw_angle = (draw_angle + 5) % 360;
+			poly_current.set(poly_base);
+			
+			trans.setRotate(draw_angle);
+			trans.postTranslate(point.x, point.y);
+			poly_current.transform(trans);
+			
+			poly_current.computeBounds(bounds, false);
+		}
+		
+		public Baddy split(){
+			this.size = size/2;
+			
+			if (size < 15) return null;
+			
+			Baddy other = new Baddy((int)point.x, (int)point.y, size);
+			resetPath();
+			return other;
+		}
+		
+		public void resetPath(){
+			poly_base.rewind();
+			
+			// build path
+			for (float deg=0;deg<(Math.PI * 2);deg+=.5 + (.5 * rand.nextFloat())){
+				PointF p = new PointF();
+				float dist = (size-10) + (rand.nextFloat() * 20);
+				
+				p.x = FloatMath.cos(deg) * dist;
+				p.y = FloatMath.sin(deg) * dist;
+				
+				if (deg == 0){
+					poly_base.moveTo(p.x, p.y);
+				} else {
+					poly_base.lineTo(p.x, p.y);
+				}
+			}
+		
+			poly_base.close();
+		}
+		
+		public void draw(Canvas cv){
+			cv.drawPath(poly_current, paint);
 		}
 		
 		public PointF point;
+		public PointF vector;
 		public int size;
 		
 		public int draw_angle = 0;
